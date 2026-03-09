@@ -18,10 +18,17 @@
         <p><strong>Target ID:</strong> {{ target.id }}</p>
     </div>
 
-    <div class="target-top-right">
+    <div class="target-top-right target-actions-stack">
         <form action="/scan/{{ target.id }}" method="post">
             <button type="submit" class="scan-btn">Run New Scan</button>
         </form>
+
+        {% if latest_scan %}
+        <div class="export-actions">
+            <a href="/targets/{{ target.id }}/export/json" class="details-btn">Export JSON</a>
+            <a href="/targets/{{ target.id }}/export/html" class="details-btn">Export HTML</a>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -39,7 +46,7 @@
 
         <div class="result-row">
             <span class="label">Risk Level</span>
-            <span class="value">{{ latest_scan.risk_level }}</span>
+            <span class="value risk-pill risk-{{ latest_scan.risk_level|lower }}">{{ latest_scan.risk_level }}</span>
         </div>
 
         <div class="result-row">
@@ -104,7 +111,7 @@
 
         <div class="result-row">
             <span class="label">Risk Level</span>
-            <span class="value">{{ scan.risk_level }}</span>
+            <span class="value risk-pill risk-{{ scan.risk_level|lower }}">{{ scan.risk_level }}</span>
         </div>
 
         <div class="result-row">

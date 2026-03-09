@@ -256,7 +256,7 @@ body {
 
 .target-top-panel {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
 }
@@ -268,7 +268,19 @@ body {
 
 .target-top-right {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+}
+
+.target-actions-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.export-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .risk-pill {

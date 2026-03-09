@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from app.db.database import SessionLocal
 from app.models.target import Target
 from app.models.scan import Scan
 from app.services.scanner import run_scan
+from app.services.reporting import build_scan_json, build_scan_html
 
 
 router = APIRouter()
@@ -28,13 +29,13 @@ def build_dashboard_data(db):
     low_risk_scans = len([s for s in scans if s.risk_level == "Low"])
 
     avg_risk_score = 0
-    if scans:
-        avg_risk_score = round(sum(s.risk_score for s in scans if s.risk_score is not None) / len(scans))
+    scored_scans = [s.risk_score for s in scans if s.risk_score is not None]
+    if scored_scans:
+        avg_risk_score = round(sum(scored_scans) / len(scored_scans))
 
     target_cards = []
     for target in targets:
         latest = latest_scan_by_target.get(target.id)
-
         target_cards.append(
             {
                 "id": target.id,
@@ -62,7 +63,6 @@ def build_dashboard_data(db):
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
     db = SessionLocal()
-
     dashboard = build_dashboard_data(db)
 
     return templates.TemplateResponse(
@@ -82,7 +82,6 @@ def target_details(request: Request, target_id: int):
     db = SessionLocal()
 
     target = db.query(Target).filter(Target.id == target_id).first()
-
     if not target:
         return RedirectResponse("/", status_code=303)
 
@@ -106,13 +105,71 @@ def target_details(request: Request, target_id: int):
     )
 
 
+@router.get("/targets/{target_id}/export/json")
+def export_latest_scan_json(target_id: int):
+    db = SessionLocal()
+
+    target = db.query(Target).filter(Target.id == target_id).first()
+    if not target:
+        return RedirectResponse("/", status_code=303)
+
+    latest_scan = (
+        db.query(Scan)
+        .filter(Scan.target_id == target_id)
+        .order_by(Scan.created_at.desc())
+        .first()
+    )
+
+    if not latest_scan:
+        return RedirectResponse(f"/targets/{target_id}", status_code=303)
+
+    content = build_scan_json(target, latest_scan)
+
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{target.domain}_latest_scan.json"'
+        },
+    )
+
+
+@router.get("/targets/{target_id}/export/html")
+def export_latest_scan_html(target_id: int):
+    db = SessionLocal()
+
+    target = db.query(Target).filter(Target.id == target_id).first()
+    if not target:
+        return RedirectResponse("/", status_code=303)
+
+    latest_scan = (
+        db.query(Scan)
+        .filter(Scan.target_id == target_id)
+        .order_by(Scan.created_at.desc())
+        .first()
+    )
+
+    if not latest_scan:
+        return RedirectResponse(f"/targets/{target_id}", status_code=303)
+
+    content = build_scan_html(target, latest_scan)
+
+    return Response(
+        content=content,
+        media_type="text/html",
+        headers={
+            "Content-Disposition": f'attachment; filename="{target.domain}_latest_scan.html"'
+        },
+    )
+
+
 @router.post("/targets/add")
 def add_target(domain: str = Form(...), description: str = Form("")):
     db = SessionLocal()
 
     clean_domain = domain.strip()
-
     existing = db.query(Target).filter(Target.domain == clean_domain).first()
+
     if not existing:
         target = Target(domain=clean_domain, description=description.strip())
         db.add(target)
