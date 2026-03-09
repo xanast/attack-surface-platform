@@ -34,9 +34,13 @@
             </div>
         </div>
 
-        <form action="/scan/{{ target.id }}" method="post">
-            <button type="submit" class="scan-btn">Run Scan</button>
-        </form>
+        <div class="card-actions">
+            <form action="/scan/{{ target.id }}" method="post">
+                <button type="submit" class="scan-btn">Run Scan</button>
+            </form>
+
+            <a href="/targets/{{ target.id }}" class="details-btn">View Details</a>
+        </div>
     </div>
     {% endfor %}
 </div>
@@ -47,7 +51,7 @@
 {% endif %}
 
 <div class="section-header">
-    <h2>Scan Results</h2>
+    <h2>Latest Scan Results</h2>
 </div>
 
 {% if scans %}
@@ -77,26 +81,6 @@
         <div class="result-row">
             <span class="label">Findings</span>
             <span class="value">{{ scan.findings if scan.findings else "None" }}</span>
-        </div>
-
-        <div class="result-row">
-            <span class="label">Open Ports</span>
-            <span class="value">{{ scan.ports if scan.ports else "None" }}</span>
-        </div>
-
-        <div class="result-row">
-            <span class="label">Technologies</span>
-            <span class="value">{{ scan.tech if scan.tech else "Unknown" }}</span>
-        </div>
-
-        <div class="result-row">
-            <span class="label">Subdomains</span>
-            <span class="value">{{ scan.subdomains if scan.subdomains else "None found" }}</span>
-        </div>
-
-        <div class="result-row">
-            <span class="label">Created At</span>
-            <span class="value">{{ scan.created_at }}</span>
         </div>
     </div>
     {% endfor %}

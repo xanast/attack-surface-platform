@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <a href="/" class="back-link">← Back to Dashboard</a>
+    <h1>{{ target.domain }}</h1>
+    <p class="subtitle">
+        {{ target.description if target.description else "No description provided." }}
+    </p>
+</div>
+
+<div class="panel target-top-panel">
+    <div class="target-top-left">
+        <h2>Target Overview</h2>
+        <p><strong>Domain:</strong> {{ target.domain }}</p>
+        <p><strong>Description:</strong> {{ target.description if target.description else "No description" }}</p>
+        <p><strong>Target ID:</strong> {{ target.id }}</p>
+    </div>
+
+    <div class="target-top-right">
+        <form action="/scan/{{ target.id }}" method="post">
+            <button type="submit" class="scan-btn">Run New Scan</button>
+        </form>
+    </div>
+</div>
+
+<div class="section-header">
+    <h2>Latest Scan</h2>
+</div>
+
+{% if latest_scan %}
+<div class="results-list">
+    <div class="result-card">
+        <div class="result-row">
+            <span class="label">Risk Score</span>
+            <span class="value">{{ latest_scan.risk_score }}/100</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Risk Level</span>
+            <span class="value">{{ latest_scan.risk_level }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Headers Score</span>
+            <span class="value">{{ latest_scan.headers_score }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">TLS Version</span>
+            <span class="value">{{ latest_scan.tls_version }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Findings</span>
+            <span class="value">{{ latest_scan.findings if latest_scan.findings else "None" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Open Ports</span>
+            <span class="value">{{ latest_scan.ports if latest_scan.ports else "None" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Technologies</span>
+            <span class="value">{{ latest_scan.tech if latest_scan.tech else "Unknown" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Subdomains</span>
+            <span class="value">{{ latest_scan.subdomains if latest_scan.subdomains else "None found" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Created At</span>
+            <span class="value">{{ latest_scan.created_at }}</span>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No scans available for this target yet.</p>
+</div>
+{% endif %}
+
+<div class="section-header">
+    <h2>Scan History</h2>
+</div>
+
+{% if scans %}
+<div class="results-list">
+    {% for scan in scans %}
+    <div class="result-card compact-card">
+        <div class="result-row">
+            <span class="label">Created At</span>
+            <span class="value">{{ scan.created_at }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Risk Score</span>
+            <span class="value">{{ scan.risk_score }}/100</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Risk Level</span>
+            <span class="value">{{ scan.risk_level }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">TLS Version</span>
+            <span class="value">{{ scan.tls_version }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No scan history found.</p>
+</div>
+{% endif %}
+
+{% endblock %}

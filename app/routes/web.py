@@ -17,13 +17,42 @@ def home(request: Request):
     db = SessionLocal()
 
     targets = db.query(Target).all()
-    scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
+    scans = db.query(Scan).order_by(Scan.created_at.desc()).limit(5).all()
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "targets": targets,
+            "scans": scans
+        }
+    )
+
+
+@router.get("/targets/{target_id}", response_class=HTMLResponse)
+def target_details(request: Request, target_id: int):
+    db = SessionLocal()
+
+    target = db.query(Target).filter(Target.id == target_id).first()
+
+    if not target:
+        return RedirectResponse("/", status_code=303)
+
+    scans = (
+        db.query(Scan)
+        .filter(Scan.target_id == target_id)
+        .order_by(Scan.created_at.desc())
+        .all()
+    )
+
+    latest_scan = scans[0] if scans else None
+
+    return templates.TemplateResponse(
+        "target_detail.html",
+        {
+            "request": request,
+            "target": target,
+            "latest_scan": latest_scan,
             "scans": scans
         }
     )
@@ -67,4 +96,4 @@ def run_target_scan(target_id: int):
     db.add(scan)
     db.commit()
 
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(f"/targets/{target_id}", status_code=303)
