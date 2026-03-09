@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Request, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -18,12 +18,15 @@ templates = Jinja2Templates(directory="app/templates")
 def split_findings(findings_text: str):
     if not findings_text:
         return []
-
     return [item.strip() for item in findings_text.split("|") if item.strip()]
 
 
+def utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def calculate_next_run(scan_frequency: str):
-    now = datetime.utcnow()
+    now = utc_now()
 
     if scan_frequency == "daily":
         return now + timedelta(days=1)
@@ -33,6 +36,28 @@ def calculate_next_run(scan_frequency: str):
         return now + timedelta(days=30)
 
     return None
+
+
+def create_scan_for_target(db, target: Target):
+    result = run_scan(target.domain)
+
+    scan = Scan(
+        target_id=target.id,
+        headers_score=result["headers_score"],
+        risk_score=result["risk_score"],
+        risk_level=result["risk_level"],
+        tls_version=result["tls"],
+        findings=" | ".join(result["findings"]),
+        ports=",".join(map(str, result["ports"])),
+        tech=",".join(result["tech"]),
+        subdomains=",".join(result["subdomains"]),
+    )
+
+    target.last_run_at = utc_now()
+    target.next_run_at = calculate_next_run(target.scan_frequency)
+
+    db.add(scan)
+    return scan
 
 
 def build_dashboard_data(db, search: str = "", risk: str = "all"):
@@ -61,6 +86,17 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
             scans,
             key=lambda s: (s.risk_score if s.risk_score is not None else 999)
         )[0]
+
+    now = utc_now()
+    scheduled_targets = len([t for t in targets if t.scan_frequency != "manual"])
+    due_targets = len(
+        [
+            t for t in targets
+            if t.scan_frequency != "manual"
+            and t.next_run_at is not None
+            and t.next_run_at <= now
+        ]
+    )
 
     search_lower = search.strip().lower()
 
@@ -104,6 +140,12 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
             else:
                 matches_risk = False
 
+        is_due = (
+            target.scan_frequency != "manual"
+            and target.next_run_at is not None
+            and target.next_run_at <= now
+        )
+
         if matches_search and matches_risk:
             target_cards.append(
                 {
@@ -114,6 +156,7 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
                     "scan_frequency": target.scan_frequency,
                     "last_run_at": target.last_run_at,
                     "next_run_at": target.next_run_at,
+                    "is_due": is_due,
                 }
             )
 
@@ -132,7 +175,7 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
             avg_score_per_target.append(
                 {
                     "domain": target.domain,
-                    "avg_score": round(sum(target_scored) / len(target_scored))
+                    "avg_score": round(sum(target_scored) / len(target_scored)),
                 }
             )
 
@@ -163,8 +206,6 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
         target = db.query(Target).filter(Target.id == highest_risk_scan.target_id).first()
         highest_risk_target_domain = target.domain if target else "Unknown"
 
-    scheduled_targets = len([t for t in targets if t.scan_frequency != "manual"])
-
     chart_data = {
         "risk_distribution": {
             "low": low_risk_scans,
@@ -190,6 +231,7 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
             "highest_risk_target_domain": highest_risk_target_domain,
             "highest_risk_score": highest_risk_scan.risk_score if highest_risk_scan else None,
             "scheduled_targets": scheduled_targets,
+            "due_targets": due_targets,
         },
     }
 
@@ -340,6 +382,26 @@ def add_target(
     return RedirectResponse("/", status_code=303)
 
 
+@router.post("/targets/run-due")
+def run_due_scans():
+    db = SessionLocal()
+    now = utc_now()
+
+    due_targets = (
+        db.query(Target)
+        .filter(Target.scan_frequency != "manual")
+        .filter(Target.next_run_at.isnot(None))
+        .all()
+    )
+
+    for target in due_targets:
+        if target.next_run_at and target.next_run_at <= now:
+            create_scan_for_target(db, target)
+
+    db.commit()
+    return RedirectResponse("/", status_code=303)
+
+
 @router.post("/targets/{target_id}/delete")
 def delete_target(target_id: int):
     db = SessionLocal()
@@ -363,24 +425,7 @@ def run_target_scan(target_id: int):
     if not target:
         return RedirectResponse("/", status_code=303)
 
-    result = run_scan(target.domain)
-
-    scan = Scan(
-        target_id=target_id,
-        headers_score=result["headers_score"],
-        risk_score=result["risk_score"],
-        risk_level=result["risk_level"],
-        tls_version=result["tls"],
-        findings=" | ".join(result["findings"]),
-        ports=",".join(map(str, result["ports"])),
-        tech=",".join(result["tech"]),
-        subdomains=",".join(result["subdomains"]),
-    )
-
-    target.last_run_at = datetime.utcnow()
-    target.next_run_at = calculate_next_run(target.scan_frequency)
-
-    db.add(scan)
+    create_scan_for_target(db, target)
     db.commit()
 
     return RedirectResponse(f"/targets/{target_id}", status_code=303)

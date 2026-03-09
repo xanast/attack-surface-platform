@@ -50,6 +50,24 @@
     </div>
 </div>
 
+<div class="panel premium-panel">
+    <div class="panel-header">
+        <h2>Scheduled Monitoring</h2>
+        <p class="panel-subtitle">Run all targets that are due based on their configured schedule.</p>
+    </div>
+
+    <div class="scheduled-toolbar">
+        <div class="scheduled-info">
+            <span class="scheduled-badge">Scheduled Targets: {{ stats.scheduled_targets }}</span>
+            <span class="scheduled-badge due-badge">Due Now: {{ stats.due_targets }}</span>
+        </div>
+
+        <form action="/targets/run-due" method="post">
+            <button type="submit" class="scan-btn">Run Due Scans</button>
+        </form>
+    </div>
+</div>
+
 <div class="stats-grid">
     <div class="metric-card">
         <span class="metric-label">Total Targets</span>
@@ -154,6 +172,16 @@
             <div class="target-risk-row">
                 <span class="label">Next Run</span>
                 <span class="value">{{ item.next_run_at if item.next_run_at else "Manual" }}</span>
+            </div>
+            <div class="target-risk-row">
+                <span class="label">Due Status</span>
+                <span class="value">
+                    {% if item.is_due %}
+                        <span class="risk-pill risk-high">Due Now</span>
+                    {% else %}
+                        <span class="risk-pill risk-low">On Schedule</span>
+                    {% endif %}
+                </span>
             </div>
         </div>
 
