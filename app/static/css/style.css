@@ -602,3 +602,53 @@ body {
         align-items: flex-start;
     }
 }
+.timeline-card{
+    margin-top:30px;
+    }
+    
+    .scan-timeline{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-top:15px;
+    }
+    
+    .timeline-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:rgba(255,255,255,0.03);
+    padding:12px 16px;
+    border-radius:10px;
+    }
+    
+    .timeline-date{
+    font-size:14px;
+    opacity:0.7;
+    }
+    
+    .timeline-score{
+    font-weight:600;
+    }
+    
+    .timeline-risk{
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+    }
+    
+    .risk-low{
+    background:#0f5132;
+    color:#9ef7c2;
+    }
+    
+    .risk-medium{
+    background:#664d03;
+    color:#ffd666;
+    }
+    
+    .risk-high{
+    background:#842029;
+    color:#ff9b9b;
+    }

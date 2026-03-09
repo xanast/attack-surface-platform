@@ -76,6 +76,42 @@
             </div>
         </div>
 
+        <div class="card timeline-card">
+
+            <h3>Scan Timeline</h3>
+            
+            <div class="scan-timeline">
+            
+            {% for item in history_items %}
+            
+            <div class="timeline-item">
+            
+            <div class="timeline-date">
+            {{ item.scan.created_at.strftime("%Y-%m-%d %H:%M") }}
+            </div>
+            
+            <div class="timeline-risk
+                {% if item.scan.risk_level == 'Low' %}risk-low{% endif %}
+                {% if item.scan.risk_level == 'Medium' %}risk-medium{% endif %}
+                {% if item.scan.risk_level == 'High' %}risk-high{% endif %}
+            ">
+            
+            {{ item.scan.risk_level }} Risk
+            
+            </div>
+            
+            <div class="timeline-score">
+            Score: {{ item.scan.risk_score }}/100
+            </div>
+            
+            </div>
+            
+            {% endfor %}
+            
+            </div>
+            
+            </div>
+            
         <div class="result-row">
             <span class="label">Open Ports</span>
             <span class="value">{{ latest_scan.ports if latest_scan.ports else "None" }}</span>
