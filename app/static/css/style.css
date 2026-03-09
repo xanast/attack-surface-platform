@@ -43,7 +43,9 @@ body {
 .panel,
 .dashboard-card,
 .result-card,
-.empty-state {
+.empty-state,
+.metric-card,
+.risk-summary-card {
     background: rgba(20, 25, 36, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 20px;
@@ -59,6 +61,62 @@ body {
 .section-header h2 {
     margin: 0 0 18px 0;
     font-size: 34px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.metric-card {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.metric-label {
+    color: #93a0b5;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 34px;
+    font-weight: 800;
+    color: #f5f7fa;
+}
+
+.metric-danger .metric-value {
+    color: #ff7b7b;
+}
+
+.risk-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 36px;
+}
+
+.risk-summary-card {
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.risk-summary-title {
+    color: #c7d2e3;
+    font-weight: 700;
+}
+
+.risk-summary-value {
+    font-size: 28px;
+    font-weight: 800;
 }
 
 .target-form {
@@ -110,7 +168,7 @@ body {
 
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 18px;
     margin-bottom: 36px;
 }
@@ -134,6 +192,25 @@ body {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+}
+
+.target-risk-box {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+
+.target-risk-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.target-risk-row:last-child {
+    border-bottom: none;
 }
 
 .results-list {
@@ -194,9 +271,40 @@ body {
     align-items: center;
 }
 
+.risk-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.risk-low {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+}
+
+.risk-medium {
+    background: rgba(250, 204, 21, 0.16);
+    color: #fde68a;
+}
+
+.risk-high {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+}
+
 @media (max-width: 900px) {
     .page-header h1 {
         font-size: 44px;
+    }
+
+    .stats-grid,
+    .risk-summary-grid {
+        grid-template-columns: 1fr;
     }
 
     .target-form {
@@ -209,6 +317,11 @@ body {
     }
 
     .target-top-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .target-risk-row {
         flex-direction: column;
         align-items: flex-start;
     }

@@ -12,19 +12,67 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
+def build_dashboard_data(db):
+    targets = db.query(Target).all()
+    scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
+
+    latest_scan_by_target = {}
+    for scan in scans:
+        if scan.target_id not in latest_scan_by_target:
+            latest_scan_by_target[scan.target_id] = scan
+
+    total_targets = len(targets)
+    total_scans = len(scans)
+    high_risk_scans = len([s for s in scans if s.risk_level == "High"])
+    medium_risk_scans = len([s for s in scans if s.risk_level == "Medium"])
+    low_risk_scans = len([s for s in scans if s.risk_level == "Low"])
+
+    avg_risk_score = 0
+    if scans:
+        avg_risk_score = round(sum(s.risk_score for s in scans if s.risk_score is not None) / len(scans))
+
+    target_cards = []
+    for target in targets:
+        latest = latest_scan_by_target.get(target.id)
+
+        target_cards.append(
+            {
+                "id": target.id,
+                "domain": target.domain,
+                "description": target.description,
+                "latest_scan": latest,
+            }
+        )
+
+    return {
+        "targets": targets,
+        "target_cards": target_cards,
+        "scans": scans[:8],
+        "stats": {
+            "total_targets": total_targets,
+            "total_scans": total_scans,
+            "high_risk_scans": high_risk_scans,
+            "medium_risk_scans": medium_risk_scans,
+            "low_risk_scans": low_risk_scans,
+            "avg_risk_score": avg_risk_score,
+        }
+    }
+
+
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request):
     db = SessionLocal()
 
-    targets = db.query(Target).all()
-    scans = db.query(Scan).order_by(Scan.created_at.desc()).limit(5).all()
+    dashboard = build_dashboard_data(db)
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "targets": targets,
-            "scans": scans
+            "targets": dashboard["targets"],
+            "target_cards": dashboard["target_cards"],
+            "scans": dashboard["scans"],
+            "stats": dashboard["stats"],
         }
     )
 
@@ -62,9 +110,11 @@ def target_details(request: Request, target_id: int):
 def add_target(domain: str = Form(...), description: str = Form("")):
     db = SessionLocal()
 
-    existing = db.query(Target).filter(Target.domain == domain).first()
+    clean_domain = domain.strip()
+
+    existing = db.query(Target).filter(Target.domain == clean_domain).first()
     if not existing:
-        target = Target(domain=domain, description=description)
+        target = Target(domain=clean_domain, description=description.strip())
         db.add(target)
         db.commit()
 

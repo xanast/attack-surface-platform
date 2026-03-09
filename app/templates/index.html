@@ -9,6 +9,45 @@
     </p>
 </div>
 
+<div class="stats-grid">
+    <div class="metric-card">
+        <span class="metric-label">Total Targets</span>
+        <span class="metric-value">{{ stats.total_targets }}</span>
+    </div>
+
+    <div class="metric-card">
+        <span class="metric-label">Total Scans</span>
+        <span class="metric-value">{{ stats.total_scans }}</span>
+    </div>
+
+    <div class="metric-card metric-danger">
+        <span class="metric-label">High Risk Scans</span>
+        <span class="metric-value">{{ stats.high_risk_scans }}</span>
+    </div>
+
+    <div class="metric-card">
+        <span class="metric-label">Average Risk Score</span>
+        <span class="metric-value">{{ stats.avg_risk_score }}/100</span>
+    </div>
+</div>
+
+<div class="risk-summary-grid">
+    <div class="risk-summary-card">
+        <span class="risk-summary-title">Low Risk</span>
+        <span class="risk-summary-value">{{ stats.low_risk_scans }}</span>
+    </div>
+
+    <div class="risk-summary-card">
+        <span class="risk-summary-title">Medium Risk</span>
+        <span class="risk-summary-value">{{ stats.medium_risk_scans }}</span>
+    </div>
+
+    <div class="risk-summary-card">
+        <span class="risk-summary-title">High Risk</span>
+        <span class="risk-summary-value">{{ stats.high_risk_scans }}</span>
+    </div>
+</div>
+
 <div class="panel">
     <h2>Add Target</h2>
 
@@ -20,26 +59,52 @@
 </div>
 
 <div class="section-header">
-    <h2>Targets</h2>
+    <h2>Monitored Targets</h2>
 </div>
 
-{% if targets %}
+{% if target_cards %}
 <div class="card-grid">
-    {% for target in targets %}
+    {% for item in target_cards %}
     <div class="dashboard-card">
         <div class="card-top">
             <div>
-                <h3>{{ target.domain }}</h3>
-                <p class="muted">{{ target.description if target.description else "No description" }}</p>
+                <h3>{{ item.domain }}</h3>
+                <p class="muted">{{ item.description if item.description else "No description" }}</p>
             </div>
         </div>
 
+        {% if item.latest_scan %}
+        <div class="target-risk-box">
+            <div class="target-risk-row">
+                <span class="label">Latest Risk</span>
+                <span class="value risk-pill risk-{{ item.latest_scan.risk_level|lower }}">{{ item.latest_scan.risk_level }}</span>
+            </div>
+
+            <div class="target-risk-row">
+                <span class="label">Risk Score</span>
+                <span class="value">{{ item.latest_scan.risk_score }}/100</span>
+            </div>
+
+            <div class="target-risk-row">
+                <span class="label">TLS</span>
+                <span class="value">{{ item.latest_scan.tls_version }}</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="target-risk-box">
+            <div class="target-risk-row">
+                <span class="label">Latest Risk</span>
+                <span class="value">Not scanned yet</span>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card-actions">
-            <form action="/scan/{{ target.id }}" method="post">
+            <form action="/scan/{{ item.id }}" method="post">
                 <button type="submit" class="scan-btn">Run Scan</button>
             </form>
 
-            <a href="/targets/{{ target.id }}" class="details-btn">View Details</a>
+            <a href="/targets/{{ item.id }}" class="details-btn">View Details</a>
         </div>
     </div>
     {% endfor %}
@@ -51,7 +116,7 @@
 {% endif %}
 
 <div class="section-header">
-    <h2>Latest Scan Results</h2>
+    <h2>Recent Scan Activity</h2>
 </div>
 
 {% if scans %}
@@ -59,13 +124,13 @@
     {% for scan in scans %}
     <div class="result-card">
         <div class="result-row">
-            <span class="label">Risk Score</span>
-            <span class="value">{{ scan.risk_score }}/100</span>
+            <span class="label">Risk Level</span>
+            <span class="value risk-pill risk-{{ scan.risk_level|lower }}">{{ scan.risk_level }}</span>
         </div>
 
         <div class="result-row">
-            <span class="label">Risk Level</span>
-            <span class="value">{{ scan.risk_level }}</span>
+            <span class="label">Risk Score</span>
+            <span class="value">{{ scan.risk_score }}/100</span>
         </div>
 
         <div class="result-row">
@@ -81,6 +146,11 @@
         <div class="result-row">
             <span class="label">Findings</span>
             <span class="value">{{ scan.findings if scan.findings else "None" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Created At</span>
+            <span class="value">{{ scan.created_at }}</span>
         </div>
     </div>
     {% endfor %}
