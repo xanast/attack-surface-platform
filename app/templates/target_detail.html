@@ -16,6 +16,9 @@
         <p><strong>Domain:</strong> {{ target.domain }}</p>
         <p><strong>Description:</strong> {{ target.description if target.description else "No description" }}</p>
         <p><strong>Target ID:</strong> {{ target.id }}</p>
+        <p><strong>Frequency:</strong> {{ target.scan_frequency|capitalize }}</p>
+        <p><strong>Last Run:</strong> {{ target.last_run_at if target.last_run_at else "Never" }}</p>
+        <p><strong>Next Run:</strong> {{ target.next_run_at if target.next_run_at else "Manual" }}</p>
     </div>
 
     <div class="target-top-right target-actions-stack">
@@ -76,42 +79,6 @@
             </div>
         </div>
 
-        <div class="card timeline-card">
-
-            <h3>Scan Timeline</h3>
-            
-            <div class="scan-timeline">
-            
-            {% for item in history_items %}
-            
-            <div class="timeline-item">
-            
-            <div class="timeline-date">
-            {{ item.scan.created_at.strftime("%Y-%m-%d %H:%M") }}
-            </div>
-            
-            <div class="timeline-risk
-                {% if item.scan.risk_level == 'Low' %}risk-low{% endif %}
-                {% if item.scan.risk_level == 'Medium' %}risk-medium{% endif %}
-                {% if item.scan.risk_level == 'High' %}risk-high{% endif %}
-            ">
-            
-            {{ item.scan.risk_level }} Risk
-            
-            </div>
-            
-            <div class="timeline-score">
-            Score: {{ item.scan.risk_score }}/100
-            </div>
-            
-            </div>
-            
-            {% endfor %}
-            
-            </div>
-            
-            </div>
-            
         <div class="result-row">
             <span class="label">Open Ports</span>
             <span class="value">{{ latest_scan.ports if latest_scan.ports else "None" }}</span>
@@ -138,6 +105,39 @@
     <p>No scans available for this target yet.</p>
 </div>
 {% endif %}
+
+<div class="chart-card">
+    <h3>Risk Score Trend</h3>
+    <canvas id="riskChart"></canvas>
+</div>
+
+<div class="timeline-card result-card">
+    <h3>Scan Timeline</h3>
+
+    <div class="scan-timeline">
+        {% if history_items %}
+            {% for item in history_items %}
+            <div class="timeline-item">
+                <div class="timeline-date">
+                    {{ item.scan.created_at.strftime("%Y-%m-%d %H:%M") }}
+                </div>
+
+                <div class="timeline-risk risk-{{ item.scan.risk_level|lower }}">
+                    {{ item.scan.risk_level }} Risk
+                </div>
+
+                <div class="timeline-score">
+                    Score: {{ item.scan.risk_score }}/100
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>No timeline data available yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 <div class="section-header">
     <h2>Scan History</h2>
@@ -187,5 +187,56 @@
     <p>No scan history found.</p>
 </div>
 {% endif %}
+
+<script>
+    const riskCtx = document.getElementById('riskChart');
+
+    if (riskCtx) {
+        new Chart(riskCtx, {
+            type: 'line',
+            data: {
+                labels: {{ risk_dates | tojson }},
+                datasets: [{
+                    label: 'Risk Score',
+                    data: {{ risk_scores | tojson }},
+                    borderColor: 'rgba(96, 165, 250, 1)',
+                    backgroundColor: 'rgba(96, 165, 250, 0.12)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f5f7fa'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#f5f7fa'
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.06)'
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            color: '#f5f7fa'
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.06)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
 
 {% endblock %}

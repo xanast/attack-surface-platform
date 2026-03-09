@@ -288,6 +288,14 @@ def target_details(request: Request, target_id: int):
             }
         )
 
+    risk_scores = []
+    risk_dates = []
+
+    for scan in reversed(scans):
+        if scan.risk_score is not None:
+            risk_scores.append(scan.risk_score)
+            risk_dates.append(scan.created_at.strftime("%m-%d"))
+
     return templates.TemplateResponse(
         "target_detail.html",
         {
@@ -296,6 +304,8 @@ def target_details(request: Request, target_id: int):
             "latest_scan": latest_scan,
             "latest_findings": latest_findings,
             "history_items": history_items,
+            "risk_scores": risk_scores,
+            "risk_dates": risk_dates,
         },
     )
 
