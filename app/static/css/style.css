@@ -137,7 +137,8 @@ body {
 
 .target-form button,
 .scan-btn,
-.details-btn {
+.details-btn,
+.delete-btn {
     height: 54px;
     border: none;
     border-radius: 14px;
@@ -157,9 +158,15 @@ body {
 
 .target-form button:hover,
 .scan-btn:hover,
-.details-btn:hover {
+.details-btn:hover,
+.delete-btn:hover {
     transform: translateY(-1px);
     opacity: 0.95;
+}
+
+.delete-btn {
+    background: #ff6b6b;
+    color: white;
 }
 
 .section-header {
@@ -238,6 +245,10 @@ body {
     border-bottom: none;
 }
 
+.findings-row {
+    align-items: start;
+}
+
 .label {
     color: #93a0b5;
     font-weight: 700;
@@ -246,6 +257,23 @@ body {
 .value {
     color: #f5f7fa;
     word-break: break-word;
+}
+
+.findings-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.finding-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #e7edf7;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .empty-state {

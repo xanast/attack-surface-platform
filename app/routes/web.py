@@ -13,6 +13,13 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
+def split_findings(findings_text: str):
+    if not findings_text:
+        return []
+
+    return [item.strip() for item in findings_text.split("|") if item.strip()]
+
+
 def build_dashboard_data(db):
     targets = db.query(Target).all()
     scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
@@ -36,6 +43,7 @@ def build_dashboard_data(db):
     target_cards = []
     for target in targets:
         latest = latest_scan_by_target.get(target.id)
+
         target_cards.append(
             {
                 "id": target.id,
@@ -45,10 +53,21 @@ def build_dashboard_data(db):
             }
         )
 
+    recent_scans = []
+    for scan in scans[:8]:
+        target = db.query(Target).filter(Target.id == scan.target_id).first()
+        recent_scans.append(
+            {
+                "scan": scan,
+                "target_domain": target.domain if target else "Unknown",
+                "findings_list": split_findings(scan.findings),
+            }
+        )
+
     return {
         "targets": targets,
         "target_cards": target_cards,
-        "scans": scans[:8],
+        "recent_scans": recent_scans,
         "stats": {
             "total_targets": total_targets,
             "total_scans": total_scans,
@@ -56,7 +75,7 @@ def build_dashboard_data(db):
             "medium_risk_scans": medium_risk_scans,
             "low_risk_scans": low_risk_scans,
             "avg_risk_score": avg_risk_score,
-        }
+        },
     }
 
 
@@ -71,9 +90,9 @@ def home(request: Request):
             "request": request,
             "targets": dashboard["targets"],
             "target_cards": dashboard["target_cards"],
-            "scans": dashboard["scans"],
+            "recent_scans": dashboard["recent_scans"],
             "stats": dashboard["stats"],
-        }
+        },
     )
 
 
@@ -94,14 +113,26 @@ def target_details(request: Request, target_id: int):
 
     latest_scan = scans[0] if scans else None
 
+    latest_findings = split_findings(latest_scan.findings) if latest_scan else []
+
+    history_items = []
+    for scan in scans:
+        history_items.append(
+            {
+                "scan": scan,
+                "findings_list": split_findings(scan.findings),
+            }
+        )
+
     return templates.TemplateResponse(
         "target_detail.html",
         {
             "request": request,
             "target": target,
             "latest_scan": latest_scan,
-            "scans": scans
-        }
+            "latest_findings": latest_findings,
+            "history_items": history_items,
+        },
     )
 
 
@@ -178,6 +209,21 @@ def add_target(domain: str = Form(...), description: str = Form("")):
     return RedirectResponse("/", status_code=303)
 
 
+@router.post("/targets/{target_id}/delete")
+def delete_target(target_id: int):
+    db = SessionLocal()
+
+    target = db.query(Target).filter(Target.id == target_id).first()
+    if not target:
+        return RedirectResponse("/", status_code=303)
+
+    db.query(Scan).filter(Scan.target_id == target_id).delete()
+    db.delete(target)
+    db.commit()
+
+    return RedirectResponse("/", status_code=303)
+
+
 @router.post("/scan/{target_id}")
 def run_target_scan(target_id: int):
     db = SessionLocal()
@@ -197,7 +243,7 @@ def run_target_scan(target_id: int):
         findings=" | ".join(result["findings"]),
         ports=",".join(map(str, result["ports"])),
         tech=",".join(result["tech"]),
-        subdomains=",".join(result["subdomains"])
+        subdomains=",".join(result["subdomains"]),
     )
 
     db.add(scan)

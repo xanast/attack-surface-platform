@@ -29,6 +29,10 @@
             <a href="/targets/{{ target.id }}/export/html" class="details-btn">Export HTML</a>
         </div>
         {% endif %}
+
+        <form action="/targets/{{ target.id }}/delete" method="post" onsubmit="return confirm('Delete this target and all related scans?');">
+            <button type="submit" class="delete-btn">Delete Target</button>
+        </form>
     </div>
 </div>
 
@@ -59,9 +63,17 @@
             <span class="value">{{ latest_scan.tls_version }}</span>
         </div>
 
-        <div class="result-row">
+        <div class="result-row findings-row">
             <span class="label">Findings</span>
-            <span class="value">{{ latest_scan.findings if latest_scan.findings else "None" }}</span>
+            <div class="findings-list">
+                {% if latest_findings %}
+                    {% for finding in latest_findings %}
+                    <span class="finding-badge">{{ finding }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="value">None</span>
+                {% endif %}
+            </div>
         </div>
 
         <div class="result-row">
@@ -95,28 +107,41 @@
     <h2>Scan History</h2>
 </div>
 
-{% if scans %}
+{% if history_items %}
 <div class="results-list">
-    {% for scan in scans %}
+    {% for item in history_items %}
     <div class="result-card compact-card">
         <div class="result-row">
             <span class="label">Created At</span>
-            <span class="value">{{ scan.created_at }}</span>
+            <span class="value">{{ item.scan.created_at }}</span>
         </div>
 
         <div class="result-row">
             <span class="label">Risk Score</span>
-            <span class="value">{{ scan.risk_score }}/100</span>
+            <span class="value">{{ item.scan.risk_score }}/100</span>
         </div>
 
         <div class="result-row">
             <span class="label">Risk Level</span>
-            <span class="value risk-pill risk-{{ scan.risk_level|lower }}">{{ scan.risk_level }}</span>
+            <span class="value risk-pill risk-{{ item.scan.risk_level|lower }}">{{ item.scan.risk_level }}</span>
         </div>
 
         <div class="result-row">
             <span class="label">TLS Version</span>
-            <span class="value">{{ scan.tls_version }}</span>
+            <span class="value">{{ item.scan.tls_version }}</span>
+        </div>
+
+        <div class="result-row findings-row">
+            <span class="label">Findings</span>
+            <div class="findings-list">
+                {% if item.findings_list %}
+                    {% for finding in item.findings_list[:4] %}
+                    <span class="finding-badge">{{ finding }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="value">None</span>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% endfor %}
