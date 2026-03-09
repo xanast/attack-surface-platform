@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -20,7 +20,7 @@ def split_findings(findings_text: str):
     return [item.strip() for item in findings_text.split("|") if item.strip()]
 
 
-def build_dashboard_data(db):
+def build_dashboard_data(db, search: str = "", risk: str = "all"):
     targets = db.query(Target).all()
     scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
 
@@ -46,6 +46,8 @@ def build_dashboard_data(db):
             scans,
             key=lambda s: (s.risk_score if s.risk_score is not None else 999)
         )[0]
+
+    search_lower = search.strip().lower()
 
     target_cards = []
     risk_trends = []
@@ -73,24 +75,39 @@ def build_dashboard_data(db):
         elif len(recent_scores) == 1:
             trend_direction = "Single Scan"
 
-        target_cards.append(
-            {
-                "id": target.id,
-                "domain": target.domain,
-                "description": target.description,
-                "latest_scan": latest,
-            }
-        )
+        matches_search = True
+        if search_lower:
+            matches_search = (
+                search_lower in target.domain.lower()
+                or search_lower in (target.description or "").lower()
+            )
 
-        risk_trends.append(
-            {
-                "id": target.id,
-                "domain": target.domain,
-                "latest_scan": latest,
-                "recent_scores": recent_scores,
-                "trend_direction": trend_direction,
-            }
-        )
+        matches_risk = True
+        if risk != "all":
+            if latest:
+                matches_risk = latest.risk_level.lower() == risk.lower()
+            else:
+                matches_risk = False
+
+        if matches_search and matches_risk:
+            target_cards.append(
+                {
+                    "id": target.id,
+                    "domain": target.domain,
+                    "description": target.description,
+                    "latest_scan": latest,
+                }
+            )
+
+            risk_trends.append(
+                {
+                    "id": target.id,
+                    "domain": target.domain,
+                    "latest_scan": latest,
+                    "recent_scores": recent_scores,
+                    "trend_direction": trend_direction,
+                }
+            )
 
         target_scored = [scan.risk_score for scan in target_scans if scan.risk_score is not None]
         if target_scored:
@@ -102,15 +119,26 @@ def build_dashboard_data(db):
             )
 
     recent_scans = []
-    for scan in scans[:8]:
+    for scan in scans:
         target = db.query(Target).filter(Target.id == scan.target_id).first()
-        recent_scans.append(
-            {
-                "scan": scan,
-                "target_domain": target.domain if target else "Unknown",
-                "findings_list": split_findings(scan.findings),
-            }
-        )
+        target_domain = target.domain if target else "Unknown"
+
+        matches_search = True
+        if search_lower:
+            matches_search = search_lower in target_domain.lower()
+
+        matches_risk = True
+        if risk != "all":
+            matches_risk = (scan.risk_level or "").lower() == risk.lower()
+
+        if matches_search and matches_risk:
+            recent_scans.append(
+                {
+                    "scan": scan,
+                    "target_domain": target_domain,
+                    "findings_list": split_findings(scan.findings),
+                }
+            )
 
     highest_risk_target_domain = None
     if highest_risk_scan:
@@ -129,7 +157,7 @@ def build_dashboard_data(db):
     return {
         "targets": targets,
         "target_cards": target_cards,
-        "recent_scans": recent_scans,
+        "recent_scans": recent_scans[:8],
         "risk_trends": risk_trends,
         "chart_data": chart_data,
         "stats": {
@@ -146,9 +174,13 @@ def build_dashboard_data(db):
 
 
 @router.get("/", response_class=HTMLResponse)
-def home(request: Request):
+def home(
+    request: Request,
+    search: str = Query(default=""),
+    risk: str = Query(default="all"),
+):
     db = SessionLocal()
-    dashboard = build_dashboard_data(db)
+    dashboard = build_dashboard_data(db, search=search, risk=risk)
 
     return templates.TemplateResponse(
         "index.html",
@@ -160,6 +192,8 @@ def home(request: Request):
             "risk_trends": dashboard["risk_trends"],
             "chart_data": dashboard["chart_data"],
             "stats": dashboard["stats"],
+            "search": search,
+            "risk": risk,
         },
     )
 

@@ -19,6 +19,21 @@
     </form>
 </div>
 
+<div class="panel">
+    <h2>Search & Filter</h2>
+
+    <form action="/" method="get" class="filter-form">
+        <input type="text" name="search" placeholder="Search domain or description" value="{{ search }}">
+        <select name="risk">
+            <option value="all" {% if risk == "all" %}selected{% endif %}>All Risk Levels</option>
+            <option value="low" {% if risk == "low" %}selected{% endif %}>Low</option>
+            <option value="medium" {% if risk == "medium" %}selected{% endif %}>Medium</option>
+            <option value="high" {% if risk == "high" %}selected{% endif %}>High</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
+</div>
+
 <div class="stats-grid">
     <div class="metric-card">
         <span class="metric-label">Total Targets</span>
@@ -153,7 +168,7 @@
 </div>
 {% else %}
 <div class="empty-state">
-    <p>No targets added yet.</p>
+    <p>No matching targets found.</p>
 </div>
 {% endif %}
 
@@ -254,7 +269,7 @@
 </div>
 {% else %}
 <div class="empty-state">
-    <p>No scans have been run yet.</p>
+    <p>No matching recent scans found.</p>
 </div>
 {% endif %}
 
