@@ -453,3 +453,33 @@ body {
         align-items: flex-start;
     }
 }
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 36px;
+}
+
+.chart-card {
+    background: rgba(20, 25, 36, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    padding: 22px;
+}
+
+.chart-card h3 {
+    margin: 0 0 18px 0;
+    font-size: 22px;
+}
+
+.chart-card canvas {
+    width: 100% !important;
+    max-height: 320px;
+}
+
+@media (max-width: 900px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}

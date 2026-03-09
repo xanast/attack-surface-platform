@@ -49,6 +49,7 @@ def build_dashboard_data(db):
 
     target_cards = []
     risk_trends = []
+    avg_score_per_target = []
 
     for target in targets:
         target_scans = (
@@ -91,6 +92,15 @@ def build_dashboard_data(db):
             }
         )
 
+        target_scored = [scan.risk_score for scan in target_scans if scan.risk_score is not None]
+        if target_scored:
+            avg_score_per_target.append(
+                {
+                    "domain": target.domain,
+                    "avg_score": round(sum(target_scored) / len(target_scored))
+                }
+            )
+
     recent_scans = []
     for scan in scans[:8]:
         target = db.query(Target).filter(Target.id == scan.target_id).first()
@@ -107,11 +117,21 @@ def build_dashboard_data(db):
         target = db.query(Target).filter(Target.id == highest_risk_scan.target_id).first()
         highest_risk_target_domain = target.domain if target else "Unknown"
 
+    chart_data = {
+        "risk_distribution": {
+            "low": low_risk_scans,
+            "medium": medium_risk_scans,
+            "high": high_risk_scans,
+        },
+        "avg_score_per_target": avg_score_per_target,
+    }
+
     return {
         "targets": targets,
         "target_cards": target_cards,
         "recent_scans": recent_scans,
         "risk_trends": risk_trends,
+        "chart_data": chart_data,
         "stats": {
             "total_targets": total_targets,
             "total_scans": total_scans,
@@ -138,6 +158,7 @@ def home(request: Request):
             "target_cards": dashboard["target_cards"],
             "recent_scans": dashboard["recent_scans"],
             "risk_trends": dashboard["risk_trends"],
+            "chart_data": dashboard["chart_data"],
             "stats": dashboard["stats"],
         },
     )

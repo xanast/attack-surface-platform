@@ -74,6 +74,18 @@
     </div>
 </div>
 
+<div class="chart-grid">
+    <div class="chart-card">
+        <h3>Risk Distribution</h3>
+        <canvas id="riskDistributionChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+        <h3>Average Score per Target</h3>
+        <canvas id="avgScoreChart"></canvas>
+    </div>
+</div>
+
 <div class="panel">
     <h2>Add Target</h2>
 
@@ -245,5 +257,84 @@
     <p>No scans have been run yet.</p>
 </div>
 {% endif %}
+
+<script>
+    const riskDistributionCtx = document.getElementById('riskDistributionChart');
+
+    if (riskDistributionCtx) {
+        new Chart(riskDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low', 'Medium', 'High'],
+                datasets: [{
+                    data: [
+                        {{ chart_data.risk_distribution.low }},
+                        {{ chart_data.risk_distribution.medium }},
+                        {{ chart_data.risk_distribution.high }}
+                    ],
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.7)',
+                        'rgba(250, 204, 21, 0.7)',
+                        'rgba(239, 68, 68, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(250, 204, 21, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f5f7fa'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const avgScoreCtx = document.getElementById('avgScoreChart');
+
+    if (avgScoreCtx) {
+        new Chart(avgScoreCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for item in chart_data.avg_score_per_target %}'{{ item.domain }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Average Risk Score',
+                    data: [{% for item in chart_data.avg_score_per_target %}{{ item.avg_score }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: 'rgba(96, 165, 250, 0.7)',
+                    borderColor: 'rgba(96, 165, 250, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        ticks: { color: '#f5f7fa' },
+                        grid: { color: 'rgba(255,255,255,0.06)' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { color: '#f5f7fa' },
+                        grid: { color: 'rgba(255,255,255,0.06)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f5f7fa'
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
 
 {% endblock %}
