@@ -45,7 +45,9 @@ body {
 .result-card,
 .empty-state,
 .metric-card,
-.risk-summary-card {
+.risk-summary-card,
+.analytics-card,
+.trend-card {
     background: rgba(20, 25, 36, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 20px;
@@ -99,7 +101,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
-    margin-bottom: 36px;
+    margin-bottom: 24px;
 }
 
 .risk-summary-card {
@@ -117,6 +119,34 @@ body {
 .risk-summary-value {
     font-size: 28px;
     font-weight: 800;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 36px;
+}
+
+.analytics-card {
+    padding: 22px;
+}
+
+.analytics-card h3 {
+    margin: 0 0 16px 0;
+    font-size: 22px;
+}
+
+.analytics-main {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    color: #f5f7fa;
+}
+
+.analytics-sub {
+    margin-top: 10px;
+    color: #aab4c5;
 }
 
 .target-form {
@@ -218,6 +248,57 @@ body {
 
 .target-risk-row:last-child {
     border-bottom: none;
+}
+
+.trend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+    margin-bottom: 36px;
+}
+
+.trend-card {
+    padding: 20px;
+}
+
+.trend-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.trend-top h3 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.trend-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #aab4c5;
+    margin-bottom: 16px;
+}
+
+.trend-score-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.trend-score-box {
+    min-width: 52px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    text-align: center;
+    font-weight: 800;
+}
+
+.trend-empty {
+    color: #aab4c5;
 }
 
 .results-list {
@@ -343,7 +424,8 @@ body {
     }
 
     .stats-grid,
-    .risk-summary-grid {
+    .risk-summary-grid,
+    .analytics-grid {
         grid-template-columns: 1fr;
     }
 
@@ -362,6 +444,11 @@ body {
     }
 
     .target-risk-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .trend-top {
         flex-direction: column;
         align-items: flex-start;
     }

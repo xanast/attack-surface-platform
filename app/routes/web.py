@@ -40,9 +40,37 @@ def build_dashboard_data(db):
     if scored_scans:
         avg_risk_score = round(sum(scored_scans) / len(scored_scans))
 
+    highest_risk_scan = None
+    if scans:
+        highest_risk_scan = sorted(
+            scans,
+            key=lambda s: (s.risk_score if s.risk_score is not None else 999)
+        )[0]
+
     target_cards = []
+    risk_trends = []
+
     for target in targets:
-        latest = latest_scan_by_target.get(target.id)
+        target_scans = (
+            db.query(Scan)
+            .filter(Scan.target_id == target.id)
+            .order_by(Scan.created_at.desc())
+            .all()
+        )
+
+        latest = target_scans[0] if target_scans else None
+        recent_scores = [scan.risk_score for scan in target_scans[:5] if scan.risk_score is not None]
+
+        trend_direction = "No Data"
+        if len(recent_scores) >= 2:
+            if recent_scores[0] < recent_scores[-1]:
+                trend_direction = "Improving"
+            elif recent_scores[0] > recent_scores[-1]:
+                trend_direction = "Worsening"
+            else:
+                trend_direction = "Stable"
+        elif len(recent_scores) == 1:
+            trend_direction = "Single Scan"
 
         target_cards.append(
             {
@@ -50,6 +78,16 @@ def build_dashboard_data(db):
                 "domain": target.domain,
                 "description": target.description,
                 "latest_scan": latest,
+            }
+        )
+
+        risk_trends.append(
+            {
+                "id": target.id,
+                "domain": target.domain,
+                "latest_scan": latest,
+                "recent_scores": recent_scores,
+                "trend_direction": trend_direction,
             }
         )
 
@@ -64,10 +102,16 @@ def build_dashboard_data(db):
             }
         )
 
+    highest_risk_target_domain = None
+    if highest_risk_scan:
+        target = db.query(Target).filter(Target.id == highest_risk_scan.target_id).first()
+        highest_risk_target_domain = target.domain if target else "Unknown"
+
     return {
         "targets": targets,
         "target_cards": target_cards,
         "recent_scans": recent_scans,
+        "risk_trends": risk_trends,
         "stats": {
             "total_targets": total_targets,
             "total_scans": total_scans,
@@ -75,6 +119,8 @@ def build_dashboard_data(db):
             "medium_risk_scans": medium_risk_scans,
             "low_risk_scans": low_risk_scans,
             "avg_risk_score": avg_risk_score,
+            "highest_risk_target_domain": highest_risk_target_domain,
+            "highest_risk_score": highest_risk_scan.risk_score if highest_risk_scan else None,
         },
     }
 
@@ -91,6 +137,7 @@ def home(request: Request):
             "targets": dashboard["targets"],
             "target_cards": dashboard["target_cards"],
             "recent_scans": dashboard["recent_scans"],
+            "risk_trends": dashboard["risk_trends"],
             "stats": dashboard["stats"],
         },
     )
@@ -112,7 +159,6 @@ def target_details(request: Request, target_id: int):
     )
 
     latest_scan = scans[0] if scans else None
-
     latest_findings = split_findings(latest_scan.findings) if latest_scan else []
 
     history_items = []

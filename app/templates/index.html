@@ -48,6 +48,32 @@
     </div>
 </div>
 
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3>Highest Risk Target</h3>
+        {% if stats.highest_risk_target_domain %}
+            <p class="analytics-main">{{ stats.highest_risk_target_domain }}</p>
+            <p class="analytics-sub">Score: {{ stats.highest_risk_score }}/100</p>
+        {% else %}
+            <p class="analytics-main">No data</p>
+        {% endif %}
+    </div>
+
+    <div class="analytics-card">
+        <h3>Platform Status</h3>
+        <p class="analytics-main">
+            {% if stats.high_risk_scans > 0 %}
+                Attention Needed
+            {% elif stats.medium_risk_scans > 0 %}
+                Monitor Closely
+            {% else %}
+                Stable
+            {% endif %}
+        </p>
+        <p class="analytics-sub">Based on latest recorded scan activity</p>
+    </div>
+</div>
+
 <div class="panel">
     <h2>Add Target</h2>
 
@@ -116,6 +142,48 @@
 {% else %}
 <div class="empty-state">
     <p>No targets added yet.</p>
+</div>
+{% endif %}
+
+<div class="section-header">
+    <h2>Risk Trends</h2>
+</div>
+
+{% if risk_trends %}
+<div class="trend-grid">
+    {% for item in risk_trends %}
+    <div class="trend-card">
+        <div class="trend-top">
+            <h3>{{ item.domain }}</h3>
+            {% if item.latest_scan %}
+                <span class="risk-pill risk-{{ item.latest_scan.risk_level|lower }}">{{ item.latest_scan.risk_level }}</span>
+            {% else %}
+                <span class="trend-empty">No scans</span>
+            {% endif %}
+        </div>
+
+        <div class="trend-meta">
+            <span>Trend: {{ item.trend_direction }}</span>
+            {% if item.latest_scan %}
+                <span>Latest Score: {{ item.latest_scan.risk_score }}/100</span>
+            {% endif %}
+        </div>
+
+        <div class="trend-score-row">
+            {% if item.recent_scores %}
+                {% for score in item.recent_scores %}
+                <div class="trend-score-box">{{ score }}</div>
+                {% endfor %}
+            {% else %}
+                <div class="trend-empty">No score history</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No trend data available yet.</p>
 </div>
 {% endif %}
 
