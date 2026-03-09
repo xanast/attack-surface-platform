@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Attack Surface Platform</h1>
+
+<form action="/targets/add" method="post">
+
+<input name="domain" placeholder="example.com" required>
+
+<input name="description" placeholder="description">
+
+<button>Add Target</button>
+
+</form>
+
+
+<h2>Targets</h2>
+
+{% for target in targets %}
+
+<div class="stat-card">
+
+<strong>{{target.domain}}</strong>
+
+<p>{{target.description}}</p>
+
+<form action="/scan/{{target.id}}" method="post">
+
+<button>Run Scan</button>
+
+</form>
+
+</div>
+
+{% endfor %}
+
+
+<h2>Scan Results</h2>
+
+{% for scan in scans %}
+
+<div class="stat-card">
+
+Headers Score: {{scan.headers_score}}
+
+<br>
+
+TLS Version: {{scan.tls_version}}
+
+<br>
+
+Findings: {{scan.findings}}
+
+</div>
+
+{% endfor %}
+
+{% endblock %}
