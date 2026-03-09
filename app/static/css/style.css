@@ -1,5 +1,17 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
 body {
     margin: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #05070d, #0b1120);
     color: #f5f7fa;
@@ -7,8 +19,11 @@ body {
 
 .container {
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 48px 24px 80px;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .page-header {
@@ -20,6 +35,7 @@ body {
     font-size: 64px;
     font-weight: 800;
     letter-spacing: -1px;
+    line-height: 1.05;
 }
 
 .subtitle {
@@ -82,18 +98,20 @@ body {
     margin: 0;
     color: #aab4c5;
     font-size: 15px;
+    line-height: 1.4;
 }
 
 .top-actions-grid {
     display: grid;
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 18px;
     margin-bottom: 12px;
+    align-items: stretch;
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 18px;
 }
@@ -103,6 +121,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-width: 0;
 }
 
 .metric-label {
@@ -117,6 +136,7 @@ body {
     font-size: 34px;
     font-weight: 800;
     color: #f5f7fa;
+    line-height: 1;
 }
 
 .metric-danger .metric-value {
@@ -125,7 +145,7 @@ body {
 
 .risk-summary-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 24px;
 }
@@ -135,6 +155,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
 }
 
 .risk-summary-title {
@@ -149,13 +171,14 @@ body {
 
 .analytics-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 36px;
 }
 
 .analytics-card {
     padding: 22px;
+    min-width: 0;
 }
 
 .analytics-card h3 {
@@ -168,6 +191,8 @@ body {
     font-size: 28px;
     font-weight: 800;
     color: #f5f7fa;
+    line-height: 1.2;
+    word-break: break-word;
 }
 
 .analytics-sub {
@@ -176,22 +201,30 @@ body {
 }
 
 .target-form {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr auto;
+    display: flex;
     gap: 14px;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
 }
 
 .filter-form {
     display: grid;
-    grid-template-columns: 1.45fr 1fr auto;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) auto;
     gap: 12px;
     align-items: center;
+    width: 100%;
+    min-width: 0;
 }
 
 .target-form input,
+.target-form select,
 .filter-form input,
 .filter-form select {
     height: 54px;
+    width: 100%;
+    min-width: 0;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
     background: #f3f4f6;
@@ -199,6 +232,40 @@ body {
     font-size: 16px;
     outline: none;
     box-sizing: border-box;
+}
+
+.target-form input[name="domain"] {
+    flex: 1.35;
+    min-width: 0;
+}
+
+.target-form input[name="description"] {
+    flex: 1;
+    min-width: 0;
+}
+
+.target-form select[name="scan_frequency"] {
+    flex: 0.75;
+    min-width: 0;
+}
+
+.target-form button {
+    flex: 0 0 auto;
+    min-width: 150px;
+    white-space: nowrap;
+}
+
+.filter-form input[name="search"] {
+    min-width: 0;
+}
+
+.filter-form select[name="risk"] {
+    min-width: 0;
+}
+
+.filter-form button {
+    min-width: 110px;
+    white-space: nowrap;
 }
 
 .target-form button,
@@ -221,7 +288,6 @@ body {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    white-space: nowrap;
 }
 
 .target-form button:hover,
@@ -251,17 +317,20 @@ body {
 
 .dashboard-card {
     padding: 20px;
+    min-width: 0;
 }
 
 .card-top h3 {
     margin: 0 0 8px 0;
     font-size: 24px;
+    word-break: break-word;
 }
 
 .muted {
     margin: 0 0 18px 0;
     color: #aab4c5;
     line-height: 1.5;
+    word-break: break-word;
 }
 
 .card-actions {
@@ -270,7 +339,8 @@ body {
     flex-wrap: wrap;
 }
 
-.target-risk-box {
+.target-risk-box,
+.schedule-box {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 16px;
     padding: 14px 16px;
@@ -298,6 +368,7 @@ body {
 
 .trend-card {
     padding: 20px;
+    min-width: 0;
 }
 
 .trend-top {
@@ -311,6 +382,7 @@ body {
 .trend-top h3 {
     margin: 0;
     font-size: 22px;
+    word-break: break-word;
 }
 
 .trend-meta {
@@ -342,13 +414,14 @@ body {
 
 .chart-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 36px;
 }
 
 .chart-card {
     padding: 22px;
+    min-width: 0;
 }
 
 .chart-card h3 {
@@ -358,6 +431,7 @@ body {
 
 .chart-card canvas {
     width: 100% !important;
+    max-width: 100%;
     max-height: 320px;
 }
 
@@ -368,6 +442,7 @@ body {
 
 .result-card {
     padding: 22px;
+    min-width: 0;
 }
 
 .compact-card {
@@ -376,7 +451,7 @@ body {
 
 .result-row {
     display: grid;
-    grid-template-columns: 180px 1fr;
+    grid-template-columns: 180px minmax(0, 1fr);
     gap: 16px;
     padding: 10px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -433,6 +508,7 @@ body {
 .target-top-left p {
     color: #c7d2e3;
     margin: 8px 0;
+    word-break: break-word;
 }
 
 .target-top-right {
@@ -491,9 +567,19 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .target-form,
+    .target-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .filter-form {
         grid-template-columns: 1fr;
+    }
+
+    .target-form button,
+    .filter-form button {
+        width: 100%;
+        min-width: 0;
     }
 
     .result-row {
@@ -515,10 +601,4 @@ body {
         flex-direction: column;
         align-items: flex-start;
     }
-}
-.schedule-box {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    padding: 14px 16px;
-    margin-bottom: 18px;
 }
