@@ -1,7 +1,18 @@
 import socket
 import httpx
 
-COMMON_PORTS = [21, 22, 25, 53, 80, 110, 143, 443, 3306, 8080]
+COMMON_PORTS = {
+    21: "ftp",
+    22: "ssh",
+    25: "smtp",
+    53: "dns",
+    80: "http",
+    110: "pop3",
+    143: "imap",
+    443: "https",
+    3306: "mysql",
+    8080: "http-alt",
+}
 
 COMMON_SUBDOMAINS = [
     "www",
@@ -17,7 +28,7 @@ COMMON_SUBDOMAINS = [
 def scan_ports(host: str):
     open_ports = []
 
-    for port in COMMON_PORTS:
+    for port, service in COMMON_PORTS.items():
         sock = None
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,7 +36,7 @@ def scan_ports(host: str):
             result = sock.connect_ex((host, port))
 
             if result == 0:
-                open_ports.append(port)
+                open_ports.append(f"{port} ({service})")
 
         except Exception:
             pass
@@ -62,10 +73,16 @@ def detect_technology(url: str):
         if via:
             tech.append(via)
 
-        # remove duplicates while preserving order
+        # basic CDN / WAF hints
+        if "cf-ray" in headers or "cloudflare" in (server or "").lower():
+            tech.append("Cloudflare")
+
+        if "x-served-by" in headers:
+            tech.append("Reverse Proxy / CDN")
+
         unique = []
         for item in tech:
-            if item not in unique:
+            if item and item not in unique:
                 unique.append(item)
 
         return unique
