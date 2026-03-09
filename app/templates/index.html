@@ -9,29 +9,37 @@
     </p>
 </div>
 
-<div class="panel">
-    <h2>Add Target</h2>
+<div class="top-actions-grid">
+    <div class="panel premium-panel">
+        <div class="panel-header">
+            <h2>Add Target</h2>
+            <p class="panel-subtitle">Add a domain to your monitoring workspace.</p>
+        </div>
 
-    <form action="/targets/add" method="post" class="target-form">
-        <input name="domain" placeholder="example.com" required>
-        <input name="description" placeholder="description">
-        <button type="submit">Add Target</button>
-    </form>
-</div>
+        <form action="/targets/add" method="post" class="target-form">
+            <input name="domain" placeholder="example.com" required>
+            <input name="description" placeholder="description">
+            <button type="submit">Add Target</button>
+        </form>
+    </div>
 
-<div class="panel">
-    <h2>Search & Filter</h2>
+    <div class="panel premium-panel compact-panel">
+        <div class="panel-header">
+            <h2>Filter Dashboard</h2>
+            <p class="panel-subtitle">Search targets and narrow results by risk level.</p>
+        </div>
 
-    <form action="/" method="get" class="filter-form">
-        <input type="text" name="search" placeholder="Search domain or description" value="{{ search }}">
-        <select name="risk">
-            <option value="all" {% if risk == "all" %}selected{% endif %}>All Risk Levels</option>
-            <option value="low" {% if risk == "low" %}selected{% endif %}>Low</option>
-            <option value="medium" {% if risk == "medium" %}selected{% endif %}>Medium</option>
-            <option value="high" {% if risk == "high" %}selected{% endif %}>High</option>
-        </select>
-        <button type="submit">Apply</button>
-    </form>
+        <form action="/" method="get" class="filter-form">
+            <input type="text" name="search" placeholder="Search domain or description" value="{{ search }}">
+            <select name="risk">
+                <option value="all" {% if risk == "all" %}selected{% endif %}>All Risk Levels</option>
+                <option value="low" {% if risk == "low" %}selected{% endif %}>Low</option>
+                <option value="medium" {% if risk == "medium" %}selected{% endif %}>Medium</option>
+                <option value="high" {% if risk == "high" %}selected{% endif %}>High</option>
+            </select>
+            <button type="submit">Apply</button>
+        </form>
+    </div>
 </div>
 
 <div class="stats-grid">

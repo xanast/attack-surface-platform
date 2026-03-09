@@ -47,7 +47,8 @@ body {
 .metric-card,
 .risk-summary-card,
 .analytics-card,
-.trend-card {
+.trend-card,
+.chart-card {
     background: rgba(20, 25, 36, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 20px;
@@ -56,13 +57,38 @@ body {
 
 .panel {
     padding: 24px;
-    margin-bottom: 36px;
+    margin-bottom: 28px;
 }
 
-.panel h2,
+.premium-panel {
+    min-height: 170px;
+}
+
+.compact-panel {
+    min-height: 170px;
+}
+
+.panel-header {
+    margin-bottom: 18px;
+}
+
+.panel-header h2,
 .section-header h2 {
-    margin: 0 0 18px 0;
+    margin: 0 0 8px 0;
     font-size: 34px;
+}
+
+.panel-subtitle {
+    margin: 0;
+    color: #aab4c5;
+    font-size: 15px;
+}
+
+.top-actions-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 18px;
+    margin-bottom: 12px;
 }
 
 .stats-grid {
@@ -155,7 +181,16 @@ body {
     gap: 14px;
 }
 
-.target-form input {
+.filter-form {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.target-form input,
+.filter-form input,
+.filter-form select {
     height: 54px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
@@ -163,9 +198,11 @@ body {
     padding: 0 16px;
     font-size: 16px;
     outline: none;
+    box-sizing: border-box;
 }
 
 .target-form button,
+.filter-form button,
 .scan-btn,
 .details-btn,
 .delete-btn {
@@ -187,6 +224,7 @@ body {
 }
 
 .target-form button:hover,
+.filter-form button:hover,
 .scan-btn:hover,
 .details-btn:hover,
 .delete-btn:hover {
@@ -299,6 +337,27 @@ body {
 
 .trend-empty {
     color: #aab4c5;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 36px;
+}
+
+.chart-card {
+    padding: 22px;
+}
+
+.chart-card h3 {
+    margin: 0 0 18px 0;
+    font-size: 22px;
+}
+
+.chart-card canvas {
+    width: 100% !important;
+    max-height: 320px;
 }
 
 .results-list {
@@ -423,13 +482,16 @@ body {
         font-size: 44px;
     }
 
+    .top-actions-grid,
     .stats-grid,
     .risk-summary-grid,
-    .analytics-grid {
+    .analytics-grid,
+    .chart-grid {
         grid-template-columns: 1fr;
     }
 
-    .target-form {
+    .target-form,
+    .filter-form {
         grid-template-columns: 1fr;
     }
 
@@ -451,35 +513,5 @@ body {
     .trend-top {
         flex-direction: column;
         align-items: flex-start;
-    }
-}
-.chart-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-    margin-bottom: 36px;
-}
-
-.chart-card {
-    background: rgba(20, 25, 36, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 20px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
-    padding: 22px;
-}
-
-.chart-card h3 {
-    margin: 0 0 18px 0;
-    font-size: 22px;
-}
-
-.chart-card canvas {
-    width: 100% !important;
-    max-height: 320px;
-}
-
-@media (max-width: 900px) {
-    .chart-grid {
-        grid-template-columns: 1fr;
     }
 }
