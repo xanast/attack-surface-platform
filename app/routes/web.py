@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Request, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
@@ -18,6 +20,19 @@ def split_findings(findings_text: str):
         return []
 
     return [item.strip() for item in findings_text.split("|") if item.strip()]
+
+
+def calculate_next_run(scan_frequency: str):
+    now = datetime.utcnow()
+
+    if scan_frequency == "daily":
+        return now + timedelta(days=1)
+    if scan_frequency == "weekly":
+        return now + timedelta(weeks=1)
+    if scan_frequency == "monthly":
+        return now + timedelta(days=30)
+
+    return None
 
 
 def build_dashboard_data(db, search: str = "", risk: str = "all"):
@@ -96,6 +111,9 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
                     "domain": target.domain,
                     "description": target.description,
                     "latest_scan": latest,
+                    "scan_frequency": target.scan_frequency,
+                    "last_run_at": target.last_run_at,
+                    "next_run_at": target.next_run_at,
                 }
             )
 
@@ -145,6 +163,8 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
         target = db.query(Target).filter(Target.id == highest_risk_scan.target_id).first()
         highest_risk_target_domain = target.domain if target else "Unknown"
 
+    scheduled_targets = len([t for t in targets if t.scan_frequency != "manual"])
+
     chart_data = {
         "risk_distribution": {
             "low": low_risk_scans,
@@ -169,6 +189,7 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
             "avg_risk_score": avg_risk_score,
             "highest_risk_target_domain": highest_risk_target_domain,
             "highest_risk_score": highest_risk_scan.risk_score if highest_risk_scan else None,
+            "scheduled_targets": scheduled_targets,
         },
     }
 
@@ -296,14 +317,23 @@ def export_latest_scan_html(target_id: int):
 
 
 @router.post("/targets/add")
-def add_target(domain: str = Form(...), description: str = Form("")):
+def add_target(
+    domain: str = Form(...),
+    description: str = Form(""),
+    scan_frequency: str = Form("manual"),
+):
     db = SessionLocal()
 
     clean_domain = domain.strip()
     existing = db.query(Target).filter(Target.domain == clean_domain).first()
 
     if not existing:
-        target = Target(domain=clean_domain, description=description.strip())
+        target = Target(
+            domain=clean_domain,
+            description=description.strip(),
+            scan_frequency=scan_frequency,
+            next_run_at=calculate_next_run(scan_frequency),
+        )
         db.add(target)
         db.commit()
 
@@ -346,6 +376,9 @@ def run_target_scan(target_id: int):
         tech=",".join(result["tech"]),
         subdomains=",".join(result["subdomains"]),
     )
+
+    target.last_run_at = datetime.utcnow()
+    target.next_run_at = calculate_next_run(target.scan_frequency)
 
     db.add(scan)
     db.commit()

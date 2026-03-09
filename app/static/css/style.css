@@ -183,7 +183,7 @@ body {
 
 .filter-form {
     display: grid;
-    grid-template-columns: 1.35fr 1fr auto;
+    grid-template-columns: 1.45fr 1fr auto;
     gap: 12px;
     align-items: center;
 }
@@ -221,6 +221,7 @@ body {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .target-form button:hover,
@@ -514,4 +515,10 @@ body {
         flex-direction: column;
         align-items: flex-start;
     }
+}
+.schedule-box {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
 }

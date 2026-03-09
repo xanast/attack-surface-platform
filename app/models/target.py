@@ -10,4 +10,9 @@ class Target(Base):
     id = Column(Integer, primary_key=True, index=True)
     domain = Column(String, unique=True, index=True)
     description = Column(String, nullable=True)
+
+    scan_frequency = Column(String, default="manual")
+    last_run_at = Column(DateTime, nullable=True)
+    next_run_at = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)

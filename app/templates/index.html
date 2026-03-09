@@ -19,6 +19,14 @@
         <form action="/targets/add" method="post" class="target-form">
             <input name="domain" placeholder="example.com" required>
             <input name="description" placeholder="description">
+
+            <select name="scan_frequency">
+                <option value="manual">Manual Only</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+
             <button type="submit">Add Target</button>
         </form>
     </div>
@@ -59,8 +67,8 @@
     </div>
 
     <div class="metric-card">
-        <span class="metric-label">Average Risk Score</span>
-        <span class="metric-value">{{ stats.avg_risk_score }}/100</span>
+        <span class="metric-label">Scheduled Targets</span>
+        <span class="metric-value">{{ stats.scheduled_targets }}</span>
     </div>
 </div>
 
@@ -131,6 +139,21 @@
             <div>
                 <h3>{{ item.domain }}</h3>
                 <p class="muted">{{ item.description if item.description else "No description" }}</p>
+            </div>
+        </div>
+
+        <div class="schedule-box">
+            <div class="target-risk-row">
+                <span class="label">Frequency</span>
+                <span class="value">{{ item.scan_frequency|capitalize }}</span>
+            </div>
+            <div class="target-risk-row">
+                <span class="label">Last Run</span>
+                <span class="value">{{ item.last_run_at if item.last_run_at else "Never" }}</span>
+            </div>
+            <div class="target-risk-row">
+                <span class="label">Next Run</span>
+                <span class="value">{{ item.next_run_at if item.next_run_at else "Manual" }}</span>
             </div>
         </div>
 
