@@ -9,6 +9,16 @@
     </p>
 </div>
 
+<div class="panel">
+    <h2>Add Target</h2>
+
+    <form action="/targets/add" method="post" class="target-form">
+        <input name="domain" placeholder="example.com" required>
+        <input name="description" placeholder="description">
+        <button type="submit">Add Target</button>
+    </form>
+</div>
+
 <div class="stats-grid">
     <div class="metric-card">
         <span class="metric-label">Total Targets</span>
@@ -84,16 +94,6 @@
         <h3>Average Score per Target</h3>
         <canvas id="avgScoreChart"></canvas>
     </div>
-</div>
-
-<div class="panel">
-    <h2>Add Target</h2>
-
-    <form action="/targets/add" method="post" class="target-form">
-        <input name="domain" placeholder="example.com" required>
-        <input name="description" placeholder="description">
-        <button type="submit">Add Target</button>
-    </form>
 </div>
 
 <div class="section-header">
