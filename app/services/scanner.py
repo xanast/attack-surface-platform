@@ -1,7 +1,8 @@
-import httpx
-import ssl
 import socket
+import ssl
 from urllib.parse import urlparse
+
+import httpx
 
 from app.services.recon import scan_ports, detect_technology, find_subdomains
 
@@ -11,35 +12,59 @@ REQUIRED_HEADERS = [
     "strict-transport-security",
     "x-frame-options",
     "x-content-type-options",
-    "referrer-policy"
+    "referrer-policy",
 ]
 
 
+def normalize_domain(domain: str):
+    domain = domain.strip()
+
+    if not domain.startswith(("http://", "https://")):
+        domain = f"https://{domain}"
+
+    parsed = urlparse(domain)
+
+    hostname = parsed.hostname or domain.replace("https://", "").replace("http://", "")
+    hostname = hostname.strip("/")
+
+    normalized_url = f"https://{hostname}"
+
+    return normalized_url, hostname
+
+
 def scan_headers(url: str):
-    response = httpx.get(url, timeout=10)
-    headers = response.headers
+    try:
+        response = httpx.get(
+            url,
+            timeout=10,
+            follow_redirects=True,
+            headers={"User-Agent": "AttackSurfacePlatform/1.0"},
+        )
 
-    present = []
-    missing = []
+        headers = response.headers
 
-    for header in REQUIRED_HEADERS:
-        if header in headers:
-            present.append(header)
-        else:
-            missing.append(header)
+        present = []
+        missing = []
 
-    return {
-        "present": present,
-        "missing": missing
-    }
+        for header in REQUIRED_HEADERS:
+            if header in headers:
+                present.append(header)
+            else:
+                missing.append(header)
+
+        return {
+            "present": present,
+            "missing": missing,
+        }
+
+    except Exception:
+        return {
+            "present": [],
+            "missing": REQUIRED_HEADERS.copy(),
+        }
 
 
-def check_tls(url: str):
-    hostname = urlparse(url).hostname
-
-    if not hostname:
-        return "Unknown"
-
+def check_tls(hostname: str):
     context = ssl.create_default_context()
 
     try:
@@ -50,7 +75,7 @@ def check_tls(url: str):
         return "Unavailable"
 
 
-def build_findings(headers_result: dict, open_ports: list[int], tech: list[str], subdomains: list[str], tls_version: str):
+def build_findings(headers_result, open_ports, tech, subdomains, tls_version):
     findings = []
 
     for header in headers_result["missing"]:
@@ -65,6 +90,9 @@ def build_findings(headers_result: dict, open_ports: list[int], tech: list[str],
     if tls_version in ["TLSv1", "TLSv1.1", "SSLv3"]:
         findings.append(f"Outdated TLS version detected: {tls_version}")
 
+    if tls_version == "Unavailable":
+        findings.append("TLS handshake unavailable or failed")
+
     if subdomains:
         findings.append(f"Discovered subdomains: {', '.join(subdomains)}")
 
@@ -77,7 +105,7 @@ def build_findings(headers_result: dict, open_ports: list[int], tech: list[str],
     return findings
 
 
-def calculate_risk(headers_result: dict, open_ports: list[int], tls_version: str):
+def calculate_risk(headers_result, open_ports, tls_version):
     score = 100
 
     score -= len(headers_result["missing"]) * 8
@@ -109,21 +137,18 @@ def calculate_risk(headers_result: dict, open_ports: list[int], tls_version: str
 
 
 def run_scan(domain: str):
-    if not domain.startswith("http"):
-        domain = f"https://{domain}"
+    normalized_url, hostname = normalize_domain(domain)
 
-    clean_domain = domain.replace("https://", "").replace("http://", "").strip("/")
-
-    headers_result = scan_headers(domain)
-    tls_version = check_tls(domain)
-    open_ports = scan_ports(clean_domain)
-    technologies = detect_technology(domain)
-    subdomains = find_subdomains(clean_domain)
+    headers_result = scan_headers(normalized_url)
+    tls_version = check_tls(hostname)
+    open_ports = scan_ports(hostname)
+    technologies = detect_technology(normalized_url)
+    subdomains = find_subdomains(hostname)
 
     risk_score, risk_level = calculate_risk(
         headers_result=headers_result,
         open_ports=open_ports,
-        tls_version=tls_version
+        tls_version=tls_version,
     )
 
     findings = build_findings(
@@ -131,7 +156,7 @@ def run_scan(domain: str):
         open_ports=open_ports,
         tech=technologies,
         subdomains=subdomains,
-        tls_version=tls_version
+        tls_version=tls_version,
     )
 
     return {
@@ -144,5 +169,5 @@ def run_scan(domain: str):
         "tech": technologies,
         "subdomains": subdomains,
         "present_headers": headers_result["present"],
-        "missing_headers": headers_result["missing"]
+        "missing_headers": headers_result["missing"],
     }
