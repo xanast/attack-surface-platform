@@ -2,58 +2,109 @@
 
 {% block content %}
 
-<h1>Attack Surface Platform</h1>
-
-<form action="/targets/add" method="post">
-
-<input name="domain" placeholder="example.com" required>
-
-<input name="description" placeholder="description">
-
-<button>Add Target</button>
-
-</form>
-
-
-<h2>Targets</h2>
-
-{% for target in targets %}
-
-<div class="stat-card">
-
-<strong>{{target.domain}}</strong>
-
-<p>{{target.description}}</p>
-
-<form action="/scan/{{target.id}}" method="post">
-
-<button>Run Scan</button>
-
-</form>
-
+<div class="page-header">
+    <h1>Attack Surface Platform</h1>
+    <p class="subtitle">
+        Defensive monitoring dashboard for authorized targets.
+    </p>
 </div>
 
-{% endfor %}
+<div class="panel">
+    <h2>Add Target</h2>
 
-
-<h2>Scan Results</h2>
-
-{% for scan in scans %}
-
-<div class="stat-card">
-
-Headers Score: {{scan.headers_score}}
-
-<br>
-
-TLS Version: {{scan.tls_version}}
-
-<br>
-
-Findings: {{scan.findings}}
-
+    <form action="/targets/add" method="post" class="target-form">
+        <input name="domain" placeholder="example.com" required>
+        <input name="description" placeholder="description">
+        <button type="submit">Add Target</button>
+    </form>
 </div>
 
-{% endfor %}
+<div class="section-header">
+    <h2>Targets</h2>
+</div>
+
+{% if targets %}
+<div class="card-grid">
+    {% for target in targets %}
+    <div class="dashboard-card">
+        <div class="card-top">
+            <div>
+                <h3>{{ target.domain }}</h3>
+                <p class="muted">{{ target.description if target.description else "No description" }}</p>
+            </div>
+        </div>
+
+        <form action="/scan/{{ target.id }}" method="post">
+            <button type="submit" class="scan-btn">Run Scan</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No targets added yet.</p>
+</div>
+{% endif %}
+
+<div class="section-header">
+    <h2>Scan Results</h2>
+</div>
+
+{% if scans %}
+<div class="results-list">
+    {% for scan in scans %}
+    <div class="result-card">
+        <div class="result-row">
+            <span class="label">Risk Score</span>
+            <span class="value">{{ scan.risk_score }}/100</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Risk Level</span>
+            <span class="value">{{ scan.risk_level }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Headers Score</span>
+            <span class="value">{{ scan.headers_score }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">TLS Version</span>
+            <span class="value">{{ scan.tls_version }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Findings</span>
+            <span class="value">{{ scan.findings if scan.findings else "None" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Open Ports</span>
+            <span class="value">{{ scan.ports if scan.ports else "None" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Technologies</span>
+            <span class="value">{{ scan.tech if scan.tech else "Unknown" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Subdomains</span>
+            <span class="value">{{ scan.subdomains if scan.subdomains else "None found" }}</span>
+        </div>
+
+        <div class="result-row">
+            <span class="label">Created At</span>
+            <span class="value">{{ scan.created_at }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No scans have been run yet.</p>
+</div>
+{% endif %}
 
 {% endblock %}
