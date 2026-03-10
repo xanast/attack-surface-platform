@@ -20,14 +20,6 @@ The goal of this project is to demonstrate practical skills in:
 
 ---
 
-# Dashboard
-
-![Dashboard](assets/dashboard.png)
-
-The dashboard allows security monitoring of authorized domains and visualizes risk indicators in a simple web interface.
-
----
-
 # Overview
 
 Attack Surface Platform helps visualize the **external exposure of web targets** through a simple monitoring interface.
@@ -220,6 +212,10 @@ https://github.com/xanast
 🔗 https://attack-surface-platform.onrender.com
 
 ## Screenshots
+
+### Dashboard
+
+![Dashboard](assets/dashboard.png)
 
 ### Target Details
 ![Target Details](assets/targetdetail.png)
