@@ -215,7 +215,7 @@ https://github.com/xanast
 
 ### Dashboard
 
-![Dashboard](assets/dashboard.png)
+![Dashboard](assets/dashboard1.png)
 
 ### Target Details
 ![Target Details](assets/targetdetail.png)
