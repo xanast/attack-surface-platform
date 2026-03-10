@@ -21,6 +21,91 @@ def split_findings(findings_text: str):
     return [item.strip() for item in findings_text.split("|") if item.strip()]
 
 
+def classify_finding(finding: str):
+    text = (finding or "").strip()
+    lower = text.lower()
+
+    severity = "Low"
+    category = "General"
+    title = "Security Finding"
+    detail = text
+
+    if "missing security header:" in lower:
+        severity = "Medium"
+        category = "Headers"
+        header_name = text.split(":", 1)[1].strip() if ":" in text else text
+        title = "Missing Security Header"
+        detail = header_name
+
+    elif "potentially sensitive open ports:" in lower:
+        severity = "High"
+        category = "Ports"
+        ports = text.split(":", 1)[1].strip() if ":" in text else text
+        title = "Sensitive Open Ports Exposed"
+        detail = ports
+
+    elif "outdated tls version detected:" in lower:
+        severity = "High"
+        category = "TLS"
+        tls_value = text.split(":", 1)[1].strip() if ":" in text else text
+        title = "Outdated TLS Version"
+        detail = tls_value
+
+    elif "tls handshake unavailable or failed" in lower:
+        severity = "High"
+        category = "TLS"
+        title = "TLS Handshake Failed"
+        detail = "The platform could not complete a secure TLS handshake."
+
+    elif "tls certificate appears expired" in lower:
+        severity = "High"
+        category = "TLS"
+        title = "Expired TLS Certificate"
+        detail = "The certificate appears to be expired."
+
+    elif "tls certificate expires soon" in lower:
+        severity = "Medium"
+        category = "TLS"
+        title = "TLS Certificate Expiring Soon"
+        detail = text
+
+    elif "discovered subdomains:" in lower:
+        severity = "Info"
+        category = "Recon"
+        title = "Subdomains Discovered"
+        detail = text.split(":", 1)[1].strip() if ":" in text else text
+
+    elif "detected technologies:" in lower:
+        severity = "Info"
+        category = "Recon"
+        title = "Technologies Detected"
+        detail = text.split(":", 1)[1].strip() if ":" in text else text
+
+    elif "application returned http status" in lower:
+        severity = "Medium"
+        category = "Application"
+        title = "Application Returned Error Status"
+        detail = text
+
+    elif "no major issues detected during this scan" in lower:
+        severity = "Low"
+        category = "Summary"
+        title = "No Major Issues Detected"
+        detail = "The scan did not identify any major issues."
+
+    return {
+        "severity": severity,
+        "category": category,
+        "title": title,
+        "detail": detail,
+        "raw": text,
+    }
+
+
+def build_structured_findings(findings_list):
+    return [classify_finding(item) for item in findings_list if item.strip()]
+
+
 def utc_now():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -193,11 +278,14 @@ def build_dashboard_data(db, search: str = "", risk: str = "all"):
             matches_risk = (scan.risk_level or "").lower() == risk.lower()
 
         if matches_search and matches_risk:
+            findings_list = split_findings(scan.findings)
+
             recent_scans.append(
                 {
                     "scan": scan,
                     "target_domain": target_domain,
-                    "findings_list": split_findings(scan.findings),
+                    "findings_list": findings_list,
+                    "structured_findings": build_structured_findings(findings_list),
                 }
             )
 
@@ -278,13 +366,17 @@ def target_details(request: Request, target_id: int):
 
     latest_scan = scans[0] if scans else None
     latest_findings = split_findings(latest_scan.findings) if latest_scan else []
+    structured_latest_findings = build_structured_findings(latest_findings)
 
     history_items = []
     for scan in scans:
+        scan_findings = split_findings(scan.findings)
+
         history_items.append(
             {
                 "scan": scan,
-                "findings_list": split_findings(scan.findings),
+                "findings_list": scan_findings,
+                "structured_findings": build_structured_findings(scan_findings),
             }
         )
 
@@ -303,6 +395,7 @@ def target_details(request: Request, target_id: int):
             "target": target,
             "latest_scan": latest_scan,
             "latest_findings": latest_findings,
+            "structured_latest_findings": structured_latest_findings,
             "history_items": history_items,
             "risk_scores": risk_scores,
             "risk_dates": risk_dates,

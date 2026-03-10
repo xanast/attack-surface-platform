@@ -27,11 +27,11 @@
         </form>
 
         {% if latest_scan %}
-        <div class="export-actions">
-            <a href="/targets/{{ target.id }}/export/json" class="details-btn">Export JSON</a>
-            <a href="/targets/{{ target.id }}/export/html" class="details-btn">Export HTML</a>
-        </div>
-        {% endif %}
+<div class="export-actions-vertical">
+    <a href="/targets/{{ target.id }}/export/json" class="details-btn">Export JSON</a>
+    <a href="/targets/{{ target.id }}/export/html" class="details-btn">Export HTML</a>
+</div>
+{% endif %}
 
         <form action="/targets/{{ target.id }}/delete" method="post" onsubmit="return confirm('Delete this target and all related scans?');">
             <button type="submit" class="delete-btn">Delete Target</button>
@@ -98,6 +98,44 @@
             <span class="label">Created At</span>
             <span class="value">{{ latest_scan.created_at }}</span>
         </div>
+
+        <div class="findings-viewer">
+            <div class="findings-viewer-top">
+                <div>
+                    <h4>Vulnerability Findings Viewer</h4>
+                    <p>Structured security findings from the latest scan.</p>
+                </div>
+                <div class="findings-count">
+                    {{ structured_latest_findings|length }} findings
+                </div>
+            </div>
+
+            {% if structured_latest_findings %}
+                <div class="findings-grid">
+                    {% for finding in structured_latest_findings %}
+                        <div class="finding-card severity-{{ finding.severity|lower }}">
+                            <div class="finding-card-top">
+                                <span class="severity-badge severity-{{ finding.severity|lower }}">
+                                    {{ finding.severity }}
+                                </span>
+                                <span class="finding-category">{{ finding.category }}</span>
+                            </div>
+
+                            <h5>{{ finding.title }}</h5>
+                            <p>{{ finding.detail }}</p>
+
+                            <div class="finding-raw">
+                                {{ finding.raw }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="finding-empty">
+                    No structured findings available for this scan.
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% else %}
@@ -129,6 +167,16 @@
                 <div class="timeline-score">
                     Score: {{ item.scan.risk_score }}/100
                 </div>
+
+                {% if item.structured_findings %}
+                <div class="timeline-findings">
+                    {% for finding in item.structured_findings[:3] %}
+                    <span class="timeline-finding-chip severity-{{ finding.severity|lower }}">
+                        {{ finding.title }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}
