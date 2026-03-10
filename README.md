@@ -162,6 +162,8 @@ uvicorn app.main:app --reload
 http://127.0.0.1:8000
 Example Workflow
 
+```
+
 Add an authorized domain
 
 Run a security scan
