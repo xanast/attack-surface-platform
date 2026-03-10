@@ -106,6 +106,47 @@ def build_structured_findings(findings_list):
     return [classify_finding(item) for item in findings_list if item.strip()]
 
 
+def build_scan_comparison(scans):
+    if len(scans) < 2:
+        return None
+
+    latest_scan = scans[0]
+    previous_scan = scans[1]
+
+    latest_findings = split_findings(latest_scan.findings)
+    previous_findings = split_findings(previous_scan.findings)
+
+    latest_set = set(latest_findings)
+    previous_set = set(previous_findings)
+
+    new_findings = sorted(list(latest_set - previous_set))
+    resolved_findings = sorted(list(previous_set - latest_set))
+    persistent_findings = sorted(list(latest_set & previous_set))
+
+    latest_score = latest_scan.risk_score if latest_scan.risk_score is not None else 0
+    previous_score = previous_scan.risk_score if previous_scan.risk_score is not None else 0
+    score_delta = latest_score - previous_score
+
+    if score_delta < 0:
+        score_direction = "improved"
+    elif score_delta > 0:
+        score_direction = "worsened"
+    else:
+        score_direction = "unchanged"
+
+    return {
+        "latest_scan": latest_scan,
+        "previous_scan": previous_scan,
+        "latest_score": latest_score,
+        "previous_score": previous_score,
+        "score_delta": score_delta,
+        "score_direction": score_direction,
+        "new_findings": build_structured_findings(new_findings),
+        "resolved_findings": build_structured_findings(resolved_findings),
+        "persistent_findings": build_structured_findings(persistent_findings),
+    }
+
+
 def utc_now():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -148,11 +189,6 @@ def create_scan_for_target(db, target: Target):
 def build_dashboard_data(db, search: str = "", risk: str = "all"):
     targets = db.query(Target).all()
     scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
-
-    latest_scan_by_target = {}
-    for scan in scans:
-        if scan.target_id not in latest_scan_by_target:
-            latest_scan_by_target[scan.target_id] = scan
 
     total_targets = len(targets)
     total_scans = len(scans)
@@ -367,6 +403,7 @@ def target_details(request: Request, target_id: int):
     latest_scan = scans[0] if scans else None
     latest_findings = split_findings(latest_scan.findings) if latest_scan else []
     structured_latest_findings = build_structured_findings(latest_findings)
+    scan_comparison = build_scan_comparison(scans)
 
     history_items = []
     for scan in scans:
@@ -399,6 +436,7 @@ def target_details(request: Request, target_id: int):
             "history_items": history_items,
             "risk_scores": risk_scores,
             "risk_dates": risk_dates,
+            "scan_comparison": scan_comparison,
         },
     )
 
