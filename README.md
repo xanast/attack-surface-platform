@@ -20,10 +20,6 @@ The goal of this project is to demonstrate practical skills in:
 
 ---
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 9f78fa1 (Fix screenshot path)
 # Overview
 
 Attack Surface Platform helps visualize the **external exposure of web targets** through a simple monitoring interface.
