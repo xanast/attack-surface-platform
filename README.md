@@ -218,3 +218,11 @@ https://github.com/xanast
 ## Live Demo
 
 🔗 https://attack-surface-platform.onrender.com
+
+## Screenshots
+
+### Target Details
+![Target Details](assets/targetdetail.png)
+
+### Scan Comparison
+![Scan Comparison](assets/scancomparison.png)
