@@ -168,10 +168,15 @@ Example Workflow
 ## Add an authorized domain
 
 Run a security scan
+
 Review security findings
+
 Inspect technologies and open ports
+
 Analyze risk score
+
 Compare with previous scans
+
 Export reports if needed
 
 
@@ -184,17 +189,25 @@ The platform is designed for educational and portfolio purposes and should not b
 ## Future Improvements
 
 background scanning workers
+
 improved scan scheduling
+
 advanced risk scoring model
+
 vulnerability database integration
+
 authentication system
+
 REST API for scan management
+
 enhanced reporting
+
 production deployment support
 
 ## Author
 
 Anastasios Makrygiannis
+
 Computer Science student focused on backend development, networking, and security tooling.
 
 GitHub
